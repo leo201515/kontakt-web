@@ -1,17 +1,24 @@
-# Kontakt Web - leokontakt.de
+# Kontakt Web
 
 Web application for contact details sharing with access codes.
 
-## Credentials
+## Setup
 
-| Item | Value |
-|------|-------|
-| **Admin Password** | `Leo@2015` |
-| **SMTP Email** | `leokontaktde@gmail.com` |
-| **SMTP App Password** | `hvbq ytap rmxy itbi` |
-| **Reset Email** | `somaratne.leo@gmail.com` |
-| **Server IP** | `217.160.66.26` |
-| **Domain** | `leokontakt.de` |
+1. Copy `.env.example` to `.env` and fill in your credentials:
+```bash
+cp .env.example .env
+nano .env
+```
+
+2. Install and run:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python3 app.py
+```
+
+Open http://localhost:5000
 
 ## Features
 
@@ -21,7 +28,7 @@ Web application for contact details sharing with access codes.
 - 5-digit numeric access codes (auto-generated, no duplicates)
 - Admin panel: generate/delete codes, manage contact details
 - Contact details: Name, Phone 1, Phone 2, Email, Address, Website, Notes
-- Password reset via email (sends to admin email)
+- Password reset via email
 - All in German
 
 ## Pages
@@ -33,28 +40,14 @@ Web application for contact details sharing with access codes.
 | Admin | `/admin` | Manage codes + contact details |
 | Passwort Reset | `/reset-password?token=xxx` | Reset admin password |
 
-## Local Development
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python3 app.py
-```
-
-Open http://localhost:5000
-
 ## Deploy to IONOS Server
 
 ```bash
-# 1. Copy files to server
-scp -r . root@217.160.66.26:/root/kontakt-web/
-
-# 2. SSH into server
-ssh root@217.160.66.26
-
-# 3. Run the deploy script
+scp -r . root@YOUR_SERVER_IP:/root/kontakt-web/
+ssh root@YOUR_SERVER_IP
 cd /root/kontakt-web
+cp .env.example .env
+nano .env
 chmod +x deploy.sh
 ./deploy.sh
 ```
