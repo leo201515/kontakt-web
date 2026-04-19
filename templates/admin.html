@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/static/style.css?v=2">
+</head>
+<body>
+    <div class="admin-screen">
+        <div class="gradient-bg"></div>
+
+        <div class="content">
+            <h1 class="title">Admin Panel</h1>
+
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="switchTab('contacts')">Kontaktdaten</button>
+                <button class="tab-btn" onclick="switchTab('codes')">Zugangscodes</button>
+            </div>
+
+            <div id="contactsTab" class="tab-content active">
+                <div class="contacts-section">
+                    <h2>Meine Kontaktdaten</h2>
+                    <p class="hint">Diese Daten sehen die Nutzer nach Eingabe ihres Codes.</p>
+                    <form id="contactForm" onsubmit="saveContacts(event)">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" placeholder="Ihr Name" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Telefon 1</label>
+                            <input type="tel" id="phone" placeholder="Erste Telefonnummer" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone2">Telefon 2</label>
+                            <input type="tel" id="phone2" placeholder="Zweite Telefonnummer" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-Mail</label>
+                            <input type="email" id="email" placeholder="Ihre E-Mail-Adresse" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Adresse</label>
+                            <input type="text" id="address" placeholder="Ihre Adresse" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="website">Website</label>
+                            <input type="text" id="website" placeholder="Ihre Website" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="notes">Notizen</label>
+                            <textarea id="notes" placeholder="Zusätzliche Informationen..." rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn-admin btn-save">Speichern</button>
+                    </form>
+                    <p id="contactMessage" class="message"></p>
+                </div>
+            </div>
+
+            <div id="codesTab" class="tab-content">
+                <div class="admin-actions">
+                    <button class="btn-admin" onclick="generateCode()">Neuen Code erstellen</button>
+                    <button class="btn-admin btn-logout" onclick="logout()">Abmelden</button>
+                </div>
+
+                <div class="codes-section">
+                    <h2>Aktive Codes</h2>
+                    <div id="codesList" class="codes-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js?v=2"></script>
+</body>
+</html>
