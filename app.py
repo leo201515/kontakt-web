@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
-from database import init_db, add_code, get_all_codes, delete_code, verify_code, init_contacts_table, get_contacts, update_contacts, create_reset_token, verify_reset_token, delete_reset_token, init_reset_tokens_table
+from database import init_db, add_code, get_all_codes, delete_code, verify_code, init_contacts_table, get_contacts, update_contacts, create_reset_token, verify_reset_token, delete_reset_token, init_reset_tokens_table, add_guest, get_all_guests, delete_guest, init_guests_table
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -22,10 +22,12 @@ def index():
     init_db()
     init_contacts_table()
     init_reset_tokens_table()
+    init_guests_table()
     return render_template('index.html')
 
 @app.route('/welcome')
 def welcome():
+    init_guests_table()
     return render_template('welcome.html')
 
 @app.route('/admin')
@@ -40,8 +42,9 @@ def api_verify():
     if len(code) != 5 or not code.isdigit():
         return jsonify({'success': False, 'message': 'Bitte geben Sie einen gültigen 5-stelligen Code ein.'})
 
-    if verify_code(code):
-        return jsonify({'success': True, 'message': 'Willkommen!'})
+    result = verify_code(code)
+    if result:
+        return jsonify({'success': True, 'message': 'Willkommen!', 'level': result['level']})
     else:
         return jsonify({'success': False, 'message': 'Ungültiger Code. Bitte versuchen Sie es erneut.'})
 
@@ -66,11 +69,16 @@ def api_admin_get_codes():
 
 @app.route('/api/admin/codes', methods=['POST'])
 def api_admin_create_code():
-    new_code = add_code()
+    data = request.get_json()
+    level = data.get('level', 'full') if data else 'full'
+    if level not in ('full', 'standard', 'basic'):
+        level = 'full'
+    new_code = add_code(level)
     return jsonify({
         'success': True,
         'message': 'Neuer Code wurde erstellt!',
-        'code': new_code
+        'code': new_code,
+        'level': level
     })
 
 @app.route('/admin/codes/<int:code_id>', methods=['DELETE'])
@@ -95,9 +103,43 @@ def api_admin_update_contacts():
     email = data.get('email', '')
     address = data.get('address', '')
     website = data.get('website', '')
+    fortnite = data.get('fortnite', '')
+    roblox = data.get('roblox', '')
+    psn = data.get('psn', '')
     notes = data.get('notes', '')
-    update_contacts(name, phone, phone2, email, address, website, notes)
+    update_contacts(name, phone, phone2, email, address, website, fortnite, roblox, psn, notes)
     return jsonify({'success': True, 'message': 'Kontaktdaten gespeichert!'})
+
+@app.route('/api/guests', methods=['POST'])
+def api_add_guest():
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    if not name:
+        return jsonify({'success': False, 'message': 'Name ist erforderlich.'})
+    phone = data.get('phone', '').strip()
+    email = data.get('email', '').strip()
+    fortnite = data.get('fortnite', '').strip()
+    roblox = data.get('roblox', '').strip()
+    psn = data.get('psn', '').strip()
+    notes = data.get('notes', '').strip()
+    add_guest(name, phone, email, fortnite, roblox, psn, notes)
+    return jsonify({'success': True, 'message': 'Vielen Dank! Ihre Daten wurden gespeichert.'})
+
+@app.route('/api/admin/guests', methods=['GET'])
+def api_admin_get_guests():
+    guests = get_all_guests()
+    return jsonify({
+        'success': True,
+        'guests': [dict(row) for row in guests]
+    })
+
+@app.route('/admin/guests/<int:guest_id>', methods=['DELETE'])
+def api_admin_delete_guest(guest_id):
+    delete_guest(guest_id)
+    return jsonify({
+        'success': True,
+        'message': 'Gast wurde gelöscht!'
+    })
 
 @app.route('/reset-password')
 def reset_password_page():

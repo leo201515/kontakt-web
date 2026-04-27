@@ -16,9 +16,15 @@ def init_db():
         CREATE TABLE IF NOT EXISTS codes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             code TEXT UNIQUE NOT NULL,
+            level TEXT DEFAULT 'full',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    try:
+        conn.execute('ALTER TABLE codes ADD COLUMN level TEXT DEFAULT "full"')
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
 
 def generate_unique_code():
@@ -33,10 +39,10 @@ def code_exists(code):
     conn.close()
     return result is not None
 
-def add_code():
+def add_code(level='full'):
     code = generate_unique_code()
     conn = get_db_connection()
-    conn.execute('INSERT INTO codes (code) VALUES (?)', (code,))
+    conn.execute('INSERT INTO codes (code, level) VALUES (?, ?)', (code, level))
     conn.commit()
     conn.close()
     return code
@@ -55,9 +61,11 @@ def delete_code(code_id):
 
 def verify_code(code):
     conn = get_db_connection()
-    result = conn.execute('SELECT id FROM codes WHERE code = ?', (code,)).fetchone()
+    result = conn.execute('SELECT id, level FROM codes WHERE code = ?', (code,)).fetchone()
     conn.close()
-    return result is not None
+    if result:
+        return {'id': result['id'], 'level': result['level']}
+    return None
 
 def init_contacts_table():
     conn = get_db_connection()
@@ -70,14 +78,32 @@ def init_contacts_table():
             email TEXT DEFAULT '',
             address TEXT DEFAULT '',
             website TEXT DEFAULT '',
+            fortnite TEXT DEFAULT '',
+            roblox TEXT DEFAULT '',
+            psn TEXT DEFAULT '',
             notes TEXT DEFAULT '',
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    try:
+        conn.execute('ALTER TABLE contacts ADD COLUMN fortnite TEXT DEFAULT ""')
+        conn.commit()
+    except Exception:
+        pass
+    try:
+        conn.execute('ALTER TABLE contacts ADD COLUMN roblox TEXT DEFAULT ""')
+        conn.commit()
+    except Exception:
+        pass
+    try:
+        conn.execute('ALTER TABLE contacts ADD COLUMN psn TEXT DEFAULT ""')
+        conn.commit()
+    except Exception:
+        pass
     existing = conn.execute('SELECT * FROM contacts').fetchone()
     if not existing:
-        conn.execute('''INSERT INTO contacts (name, phone, phone2, email, address, website, notes)
-                        VALUES ('', '', '', '', '', '', '')''')
+        conn.execute('''INSERT INTO contacts (name, phone, phone2, email, address, website, fortnite, roblox, psn, notes)
+                        VALUES ('', '', '', '', '', '', '', '', '', '')''')
         conn.commit()
     conn.close()
 
@@ -87,10 +113,10 @@ def get_contacts():
     conn.close()
     return dict(result) if result else {}
 
-def update_contacts(name, phone, phone2, email, address, website, notes):
+def update_contacts(name, phone, phone2, email, address, website, fortnite, roblox, psn, notes):
     conn = get_db_connection()
-    conn.execute('''UPDATE contacts SET name=?, phone=?, phone2=?, email=?, address=?, website=?, notes=?, updated_at=CURRENT_TIMESTAMP WHERE id=1''',
-                (name, phone, phone2, email, address, website, notes))
+    conn.execute('''UPDATE contacts SET name=?, phone=?, phone2=?, email=?, address=?, website=?, fortnite=?, roblox=?, psn=?, notes=?, updated_at=CURRENT_TIMESTAMP WHERE id=1''',
+                (name, phone, phone2, email, address, website, fortnite, roblox, psn, notes))
     conn.commit()
     conn.close()
 
@@ -113,6 +139,57 @@ def delete_reset_token(token):
     conn = get_db_connection()
     conn.execute('DELETE FROM reset_tokens WHERE token = ?', (token,))
     conn.commit()
+    conn.close()
+
+def add_guest(name, phone='', email='', fortnite='', roblox='', psn='', notes=''):
+    conn = get_db_connection()
+    conn.execute('INSERT INTO guests (name, phone, email, fortnite, roblox, psn, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                 (name, phone, email, fortnite, roblox, psn, notes))
+    conn.commit()
+    conn.close()
+
+def get_all_guests():
+    conn = get_db_connection()
+    guests = conn.execute('SELECT * FROM guests ORDER BY created_at DESC').fetchall()
+    conn.close()
+    return guests
+
+def delete_guest(guest_id):
+    conn = get_db_connection()
+    conn.execute('DELETE FROM guests WHERE id = ?', (guest_id,))
+    conn.commit()
+    conn.close()
+
+def init_guests_table():
+    conn = get_db_connection()
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS guests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            phone TEXT DEFAULT '',
+            email TEXT DEFAULT '',
+            fortnite TEXT DEFAULT '',
+            roblox TEXT DEFAULT '',
+            psn TEXT DEFAULT '',
+            notes TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    try:
+        conn.execute('ALTER TABLE guests ADD COLUMN fortnite TEXT DEFAULT ""')
+        conn.commit()
+    except Exception:
+        pass
+    try:
+        conn.execute('ALTER TABLE guests ADD COLUMN roblox TEXT DEFAULT ""')
+        conn.commit()
+    except Exception:
+        pass
+    try:
+        conn.execute('ALTER TABLE guests ADD COLUMN psn TEXT DEFAULT ""')
+        conn.commit()
+    except Exception:
+        pass
     conn.close()
 
 def init_reset_tokens_table():

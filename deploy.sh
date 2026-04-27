@@ -7,7 +7,7 @@ echo "[1/6] Installing system dependencies..."
 apt update && apt install -y python3-venv python3-pip nginx
 
 echo "[2/6] Setting up Python virtual environment..."
-cd /root/kontakt-web
+cd /home/leo/kontakt-web
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -30,7 +30,7 @@ server {
     }
 
     location /static/ {
-        alias /root/kontakt-web/static/;
+        alias /home/leo/kontakt-web/static/;
         expires 7d;
     }
 }
@@ -49,8 +49,8 @@ After=network.target
 
 [Service]
 User=root
-WorkingDirectory=/root/kontakt-web
-ExecStart=/root/kontakt-web/venv/bin/gunicorn -b 127.0.0.1:5000 --workers 2 app:app
+WorkingDirectory=/home/leo/kontakt-web
+ExecStart=/home/leo/kontakt-web/venv/bin/gunicorn -b 127.0.0.1:5000 --workers 2 app:app
 Restart=always
 RestartSec=3
 
